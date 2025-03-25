@@ -1,18 +1,21 @@
 package com.takidukkani.app;
 
 import com.takidukkani.controller.MusteriController;
+import com.takidukkani.controller.SiparisController;
+import com.takidukkani.controller.UrunController;
 import com.takidukkani.entity.Musteri;
-import com.takidukkani.entity.Siparis;
 import com.takidukkani.entity.Urun;
 import com.takidukkani.util.HibernateUtil;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    private static final MusteriController musteriController = new MusteriController();
+    private static final UrunController urunController = new UrunController();
+    private static final SiparisController siparisController = new SiparisController();
+
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
@@ -33,9 +36,9 @@ public class Main {
                     case 1 -> urunEkle(scanner);
                     case 2 -> musteriEkle(scanner);
                     case 3 -> siparisOlustur(scanner);
-                    case 4 -> urunListele();
-                    case 5 -> musteriListele();
-                    case 6 -> siparisListele();
+                    case 4 -> urunController.urunListele();
+                    case 5 -> musteriController.musteriListele();
+                    case 6 -> siparisController.siparisListele();
                     case 0 -> {
                         System.out.println("Çıkılıyor...");
                         return;
@@ -55,21 +58,13 @@ public class Main {
         }
 
         System.out.print("Fiyat: ");
-        double fiyat;
-        try {
-            fiyat = Double.parseDouble(scanner.nextLine());
-            if (fiyat <= 0) {
-                System.out.println("Fiyat 0 veya negatif olamaz!");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Lütfen geçerli bir fiyat giriniz!");
+        double fiyat = getDoubleInput(scanner);
+        if (fiyat <= 0) {
+            System.out.println("Fiyat 0 veya negatif olamaz!");
             return;
         }
 
-        Urun urun = new Urun(ad, fiyat);
-        executeInsideTransaction(session -> session.persist(urun));
-        System.out.println("Ürün başarıyla eklendi!");
+        urunController.urunEkle(ad, fiyat);
     }
 
     private static void musteriEkle(Scanner scanner) {
@@ -87,9 +82,7 @@ public class Main {
             return;
         }
 
-        Musteri musteri = new Musteri(isim, email);
-        executeInsideTransaction(session -> session.persist(musteri));
-        System.out.println("Müşteri başarıyla eklendi!");
+        musteriController.musteriEkle(isim, email);
     }
 
     private static void siparisOlustur(Scanner scanner) {
@@ -107,61 +100,7 @@ public class Main {
                 return;
             }
 
-            Siparis siparis = new Siparis(musteri, urun, LocalDateTime.now());
-            executeInsideTransaction(session1 -> session1.persist(siparis));
-            System.out.println("Sipariş başarıyla oluşturuldu!");
-        }
-    }
-
-    private static void urunListele() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<Urun> urunler = session.createQuery("from Urun", Urun.class).list();
-            if (urunler.isEmpty()) {
-                System.out.println("Henüz eklenmiş ürün bulunmuyor.");
-                return;
-            }
-            System.out.println("Ürünler:");
-            urunler.forEach(u -> System.out.println("ID: " + u.getId() + ", Ad: " + u.getUrunAdi() + ", Fiyat: " + u.getFiyat()));
-        }
-    }
-
-    private static void musteriListele() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<Musteri> musteriler = session.createQuery("from Musteri", Musteri.class).list();
-            if (musteriler.isEmpty()) {
-                System.out.println("Henüz eklenmiş müşteri bulunmuyor.");
-                return;
-            }
-            System.out.println("Müşteriler:");
-            musteriler.forEach(m -> System.out.println("ID: " + m.getId() + ", İsim: " + m.getIsim() + ", Email: " + m.getEmail()));
-        }
-    }
-
-    private static void siparisListele() {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<Siparis> siparisler = session.createQuery("from Siparis", Siparis.class).list();
-            if (siparisler.isEmpty()) {
-                System.out.println("Henüz eklenmiş sipariş bulunmuyor.");
-                return;
-            }
-            System.out.println("Siparişler:");
-            siparisler.forEach(s -> System.out.println("ID: " + s.getId() +
-                    ", Müşteri: " + s.getMusteri().getIsim() +
-                    ", Ürün: " + s.getUrun().getUrunAdi() +
-                    ", Tarih: " + s.getSiparisTarihi()));
-        }
-    }
-
-    private static void executeInsideTransaction(java.util.function.Consumer<Session> action) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                action.accept(session);
-                tx.commit();
-            } catch (RuntimeException e) {
-                tx.rollback();
-                e.printStackTrace();
-            }
+            siparisController.siparisEkle(musteri, urun, LocalDateTime.now());
         }
     }
 
@@ -170,6 +109,15 @@ public class Main {
             return Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("Geçerli bir sayı giriniz!");
+            return -1;
+        }
+    }
+
+    private static double getDoubleInput(Scanner scanner) {
+        try {
+            return Double.parseDouble(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Geçerli bir fiyat giriniz!");
             return -1;
         }
     }

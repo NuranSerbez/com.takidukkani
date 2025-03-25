@@ -5,6 +5,8 @@ import com.takidukkani.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.util.List;
+
 public class UrunController {
 
     public void urunEkle(String urunAdi, double fiyat) {
@@ -63,6 +65,24 @@ public class UrunController {
                 transaction.rollback();
                 System.out.println("Ürün silinirken bir hata oluştu: " + e.getMessage());
             }
+        }
+    }
+    public void urunListele() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Urun> urunler = session.createQuery("FROM Urun", Urun.class).list();
+
+            if (urunler.isEmpty()) {
+                System.out.println("Veritabanında ürün bulunmamaktadır.");
+            } else {
+                System.out.println("📋 Ürün Listesi:");
+                for (Urun urun : urunler) {
+                    System.out.println("ID: " + urun.getId() +
+                            " | Ürün Adı: " + urun.getUrunAdi() +
+                            " | Fiyat: " + urun.getFiyat() + "₺");
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Ürünler listelenirken bir hata oluştu: " + e.getMessage());
         }
     }
 }

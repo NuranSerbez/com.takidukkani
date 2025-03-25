@@ -5,6 +5,8 @@ import com.takidukkani.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.util.List;
+
 public class MusteriController {
 
     public void musteriEkle(String isim, String email) {
@@ -64,6 +66,22 @@ public class MusteriController {
                 transaction.rollback();
                 System.out.println("Müşteri silinirken bir hata oluştu: " + e.getMessage());
             }
+        }
+    }
+    public void musteriListele() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Musteri> musteriler = session.createQuery("FROM Musteri", Musteri.class).list();
+
+            if (musteriler.isEmpty()) {
+                System.out.println("Veritabanında müşteri bulunmamaktadır.");
+            } else {
+                System.out.println("📋 Müşteri Listesi:");
+                for (Musteri musteri : musteriler) {
+                    System.out.println("ID: " + musteri.getId() + " | İsim: " + musteri.getIsim() + " | Email: " + musteri.getEmail());
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Müşteriler listelenirken bir hata oluştu: " + e.getMessage());
         }
     }
 }

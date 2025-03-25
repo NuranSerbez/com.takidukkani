@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SiparisController {
 
@@ -68,6 +69,25 @@ public class SiparisController {
                 transaction.rollback();
                 System.out.println("Sipariş silinirken bir hata oluştu: " + e.getMessage());
             }
+        }
+    }
+    public void siparisListele() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Siparis> siparisler = session.createQuery("FROM Siparis", Siparis.class).list();
+
+            if (siparisler.isEmpty()) {
+                System.out.println("Veritabanında sipariş bulunmamaktadır.");
+            } else {
+                System.out.println("📋 Sipariş Listesi:");
+                for (Siparis siparis : siparisler) {
+                    System.out.println("ID: " + siparis.getId() +
+                            " | Müşteri: " + siparis.getMusteri().getIsim() +
+                            " | Ürün: " + siparis.getUrun().getUrunAdi() +
+                            " | Tarih: " + siparis.getSiparisTarihi());
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Siparişler listelenirken bir hata oluştu: " + e.getMessage());
         }
     }
 }
