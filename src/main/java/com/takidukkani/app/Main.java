@@ -7,10 +7,8 @@ import com.takidukkani.entity.Musteri;
 import com.takidukkani.entity.Urun;
 import com.takidukkani.util.HibernateUtil;
 import org.hibernate.Session;
-
 import java.time.LocalDateTime;
 import java.util.Scanner;
-
 public class Main {
     private static final MusteriController musteriController = new MusteriController();
     private static final UrunController urunController = new UrunController();

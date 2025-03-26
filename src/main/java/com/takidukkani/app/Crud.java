@@ -18,8 +18,6 @@ public class Crud {
 // Yeni bir sipariş ekle
         SiparisController siparisController = new SiparisController();
         urunController.urunEkle("İnci Kolye", 5000.00);
-
-
       //  UrunController urunController = new UrunController();
 
        // try (Session session = HibernateUtil.getSessionFactory().openSession()) {
